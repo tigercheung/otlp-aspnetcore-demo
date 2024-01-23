@@ -1,0 +1,6 @@
+@crp.app1.webapi_HostAddress = http://localhost:5154
+
+GET {{crp.app1.webapi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
