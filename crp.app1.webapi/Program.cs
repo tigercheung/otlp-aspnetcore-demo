@@ -1,4 +1,5 @@
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -30,21 +31,42 @@ builder.Services.AddOpenTelemetry()
         .AddConsoleExporter()
         .AddOtlpExporter(opt =>
         {
-            opt.Endpoint = new Uri(builder.Configuration.GetValue("Otlp/ls:Tracing:Endpoint", defaultValue: "http://localhost:4317")!);
+            opt.Endpoint = new Uri(builder.Configuration.GetValue("Otlp/collector:Tracing:Endpoint", defaultValue: "http://localhost:4318")!);
             opt.Protocol = OtlpExportProtocol.HttpProtobuf;
-            opt.HttpClientFactory = () =>
-            {
-                var clientHandler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
+            //opt.HttpClientFactory = () =>
+            //{
+            //    var clientHandler = new HttpClientHandler
+            //    {
+            //        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            //    };
 
-                HttpClient client = new(clientHandler);
-                client.DefaultRequestHeaders.Add("lightstep-access-token", (builder.Configuration.GetValue("Otlp:LightstepAccessToken", defaultValue: "NO_TOKEN_FOUND")!));
-                return client;
-            };
+            //    HttpClient client = new(clientHandler);
+            //    client.DefaultRequestHeaders.Add("lightstep-access-token", (builder.Configuration.GetValue("Otlp:LightstepAccessToken", defaultValue: "NO_TOKEN_FOUND")!));
+            //    return client;
+            //};
         })
-);
+    )
+    .WithMetrics(metricsProviderBuilder => metricsProviderBuilder
+        .ConfigureResource(resource)
+        .AddConsoleExporter()
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter(opt =>
+        {
+            opt.Endpoint = new Uri(builder.Configuration.GetValue("Otlp/collector:Metrics:Endpoint", defaultValue: "http://localhost:4318")!);
+            opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+            //opt.HttpClientFactory = () =>
+            //{
+            //    var clientHandler = new HttpClientHandler
+            //    {
+            //        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            //    };
+
+            //    HttpClient client = new(clientHandler);
+            //    client.DefaultRequestHeaders.Add("lightstep-access-token", (builder.Configuration.GetValue("Otlp:LightstepAccessToken", defaultValue: "NO_TOKEN_FOUND")!));
+            //    return client;
+            //};
+        })
+   );
 
 var app = builder.Build();
 
