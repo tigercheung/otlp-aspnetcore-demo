@@ -2,6 +2,8 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Sinks.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,15 @@ Action<ResourceBuilder> resource = r => r.AddService(
     serviceName: serviceName,
     serviceVersion: serviceVersion,
     serviceInstanceId: Environment.MachineName);
+
+////logs
+//Log.Logger = new LoggerConfiguration()
+//    .WriteTo.OpenTelemetry(options =>
+//    {
+//        options.Endpoint = builder.Configuration.GetValue("Otlp/collector:Tracing:Endpoint", defaultValue: "http://localhost:4318")!;
+//        options.Protocol = OtlpProtocol.HttpProtobuf;
+//    })
+//    .CreateLogger();
 
 //add OpenTelemetry with tracing and config OpenTelemetry to export trace info to lightstep 
 builder.Services.AddOpenTelemetry()
@@ -70,6 +81,8 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -77,7 +90,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
